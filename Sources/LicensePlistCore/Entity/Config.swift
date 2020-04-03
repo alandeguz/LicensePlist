@@ -12,6 +12,7 @@ public struct Config {
     public var suppressOpeningDirectory = false
     public var singlePage = false
     public var failIfMissingLicense = false
+    public var reformatLineBreaks = false
 
     public static let empty = Config(githubs: [], manuals: [], excludes: [], renames: [:])
 

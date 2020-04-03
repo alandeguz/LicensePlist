@@ -17,11 +17,24 @@ struct LicensePlistHolder {
                                                        format: .xml,
                                                        options: 0)
         let items: [(LicenseInfo, Data)] = licenses.map { license in
-            let item = ["PreferenceSpecifiers": [["Type": "PSGroupSpecifier", "FooterText": license.body]]]
+            let body = options.config.reformatLineBreaks ? reformatLineBreaks(license.body) : license.body
+            let item = ["PreferenceSpecifiers": [["Type": "PSGroupSpecifier", "FooterText": body]]]
             let value = try! PropertyListSerialization.data(fromPropertyList: item, format: .xml, options: 0)
             return (license, value)
         }
         return LicensePlistHolder(root: root, items: items)
+    }
+    
+    private static func reformatLineBreaks(_ s: String) -> String {
+        let twoNewlines = "\n\n"
+        let placeholder = UUID().uuidString
+        var r = s
+        r = r.replacingOccurrences(of: twoNewlines, with: placeholder)
+        r = r.replacingOccurrences(of: "\n", with: " ")
+        r = r.replacingOccurrences(of: " +", with: " ", options: .regularExpression, range: nil)
+        r = r.replacingOccurrences(of: placeholder, with: twoNewlines)
+        r = r.replacingOccurrences(of: "\n ", with: "\n")
+        return r
     }
 
     static func loadAllToRoot(licenses: [LicenseInfo]) -> LicensePlistHolder {
