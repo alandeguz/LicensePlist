@@ -18,6 +18,7 @@ struct LicensePlistHolder {
                                                        options: 0)
         let items: [(LicenseInfo, Data)] = licenses.map { license in
             let lineRegex = try! NSRegularExpression(pattern: "^\\s*[-_*=]{3,}\\s*$", options: [])
+            // let body = options.config.reformatLineBreaks ? reformatLineBreaks(license.body) : license.body
             let item = ["PreferenceSpecifiers":
                             license.body
                             .components(separatedBy: "\n\n")
@@ -29,13 +30,28 @@ struct LicensePlistHolder {
                             }
                             .joined(separator: [String(repeating: "-", count: 40)])
                             .map { (paragraph) -> [String: String] in
-                                ["Type": "PSGroupSpecifier", "FooterText": paragraph]
+                                ["Type": "PSGroupSpecifier", "FooterText":
+                                    options.config.reformatLineBreaks ? reformatLineBreaks(paragraph) : paragraph
+                                ]
                             }
+                            
             ]
             let value = try! PropertyListSerialization.data(fromPropertyList: item, format: .xml, options: 0)
             return (license, value)
         }
         return LicensePlistHolder(root: root, items: items)
+    }
+    
+    private static func reformatLineBreaks(_ s: String) -> String {
+        let twoNewlines = "\n\n"
+        let placeholder = UUID().uuidString
+        var r = s
+        r = r.replacingOccurrences(of: twoNewlines, with: placeholder)
+        r = r.replacingOccurrences(of: "\n", with: " ")
+        r = r.replacingOccurrences(of: " +", with: " ", options: .regularExpression, range: nil)
+        r = r.replacingOccurrences(of: placeholder, with: twoNewlines)
+        r = r.replacingOccurrences(of: "\n ", with: "\n")
+        return r
     }
 
     static func loadAllToRoot(licenses: [LicenseInfo]) -> LicensePlistHolder {
