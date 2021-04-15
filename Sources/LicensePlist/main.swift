@@ -66,6 +66,9 @@ struct LicensePlist: ParsableCommand {
 
 	@Flag(name: .long)
 	var failIfMissingLicense = false
+    
+    @Flag(name: .long)
+    var reformatLineBreaks = false
 
 	func run() throws {
 		Logger.configure()
@@ -75,6 +78,7 @@ struct LicensePlist: ParsableCommand {
 		config.suppressOpeningDirectory = suppressOpeningDirectory
 		config.singlePage = singlePage
 		config.failIfMissingLicense = failIfMissingLicense
+        config.reformatLineBreaks = reformatLineBreaks
 		let options = Options(outputPath: URL(fileURLWithPath: outputPath),
 									 cartfilePath: URL(fileURLWithPath: cartfilePath),
 									 mintfilePath: URL(fileURLWithPath: mintfilePath),
