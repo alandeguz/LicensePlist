@@ -1,4 +1,4 @@
-// swift-tools-version:5.3
+// swift-tools-version:5.7
 
 import PackageDescription
 
@@ -7,6 +7,7 @@ let package = Package(
     products: [
         .executable(name: "license-plist", targets: ["LicensePlist"]),
         .library(name: "LicensePlistCore", targets: ["LicensePlistCore"]),
+        .plugin(name: "LicensePlistPlugin", targets: ["LicensePlistPlugin"]),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser.git",
@@ -39,6 +40,15 @@ let package = Package(
                 .product(name: "HTMLEntities", package: "swift-html-entities"),
                 .product(name: "Yaml", package: "YamlSwift")
             ]
+        ),
+        .plugin(
+          name: "LicensePlistPlugin",
+          capability: .buildTool(),
+          dependencies: ["LicensePlistBinary"]),
+        .binaryTarget(
+          name: "LicensePlistBinary",
+          url: "https://github.com/alandeguz/swift-build-tools/releases/download/1.0.4/LicensePlistBinary-macos.artifactbundle.zip",
+          checksum: "f2619e91a34b38a525b65d307f7828df6094628ae113c2ab7173eb995c456bb1"
         ),
         .testTarget(
             name: "LicensePlistTests",
