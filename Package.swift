@@ -17,15 +17,7 @@ let package = Package(
     targets: [
         .plugin(
           name: "LicensePlistPlugin",
-          capability: .command(
-            intent: .custom(
-              verb: "generate-code-for-resources",
-              description: "Creates type-safe for all your resources"
-            ),
-            permissions: [
-              .writeToPackageDirectory(reason: "This command generates source code")
-            ]
-          ),
+          capability: .buildTool(),
           dependencies: ["LicensePlistBinary"]),
         .binaryTarget(
           name: "LicensePlistBinary",
