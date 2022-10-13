@@ -59,17 +59,26 @@ extension LicensePlistBuildToolPlugin: XcodeBuildToolPlugin {
     
     let xcodeProjectPath = context.xcodeProject.directory.appending(subpath: config.xcodeProjectName)
     let outputPath = context.xcodeProject.directory.appending(subpath: config.output)
+    
+    var arguments = [
+      "--suppress-opening-directory",
+      "--xcodeproj-path", xcodeProjectPath.string,
+      "--output-path", outputPath.string,
+    ]
+    
+    if !config.prefix.isEmpty {
+      arguments.append("--prefix")
+      arguments.append(config.prefix)
+    }
+    
+    if config.addVersionNumbers {
+      arguments.append("--add-version-numbers")
+    }
     return
       .prebuildCommand(
         displayName: "Running LicensePlist",
         executable: try context.tool(named: "license-plist").path,
-        arguments: [
-          "--xcodeproj-path", xcodeProjectPath.string,
-          "--output-path", outputPath.string,
-          "--prefix", config.prefix,
-          "--suppress-opening-directory",
-          config.addVersionNumbers ? "--add-version-numbers" : ""
-        ],
+        arguments: arguments,
         environment: [: ],
         outputFilesDirectory: context.pluginWorkDirectory
       )
