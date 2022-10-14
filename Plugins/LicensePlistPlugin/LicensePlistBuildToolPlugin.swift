@@ -36,7 +36,11 @@ extension LicensePlistBuildToolPlugin: XcodeBuildToolPlugin {
   func createBuildCommands(context: XcodePluginContext, target: XcodeTarget) throws -> [Command] {
     let configPath = context.xcodeProject.directory.appending(subpath: ".license-plist-config.plist")
     let config = try Config.parseConfig(configPath.string)
-    if let env = ProcessInfo.processInfo.environment[config.ciEnvironment], !env.isEmpty {
+    
+    // skip if the `environmentVarDoNotExecute` exists
+    if let ciEnvironment = config.environmentVarDoNotExecute,
+       let env = ProcessInfo.processInfo.environment[ciEnvironment],
+        !env.isEmpty {
       return [
         .buildCommand(
           displayName: "\(Const.skipFor) \(target.displayName)",
@@ -72,25 +76,25 @@ extension LicensePlistBuildToolPlugin: XcodeBuildToolPlugin {
 
 struct Config: Codable {
   let carfilePath: String?
-  let mintfilePath: String
-  let podsPath: String
-  let packagePath: String
-  let packagesPath: String
-  let xcodeprojPath: String
-  let xcworkspacePath: String
-  let outputPath: String
-  let githubToken: String
-  let configPath: String
-  let prefix: String
-  let htmlPath: String
-  let markdownPath: String
-  let force: Bool
-  let addVersionNumbers: Bool
-  let addSources: Bool
-  let supressOpeningDirectory: Bool
-  let singlePage: Bool
-  let failIfMissingLicense: Bool
-  let ciEnvironment: String
+  let mintfilePath: String?
+  let podsPath: String?
+  let packagePath: String?
+  let packagesPath: String?
+  let xcodeprojPath: String?
+  let xcworkspacePath: String?
+  let outputPath: String?
+  let githubToken: String?
+  let configPath: String?
+  let prefix: String?
+  let htmlPath: String?
+  let markdownPath: String?
+  let force: Bool?
+  let addVersionNumbers: Bool?
+  let addSources: Bool?
+  let supressOpeningDirectory: Bool?
+  let singlePage: Bool?
+  let failIfMissingLicense: Bool?
+  let environmentVarDoNotExecute: String?
   
   // Since the license-plist binary doesn't support any type of configuration file,
   // we'll define our own config filen and construct the sequence of arguments to the binary
@@ -130,23 +134,22 @@ struct Config: Codable {
     return bools + strings
   }
   
-  func format(_ key: String, _ val: String) -> [String] {
-    return val.isEmpty ? [] : [key, val]
+  func format(_ key: String, _ val: String?) -> [String] {
+    if let val = val, !val.isEmpty {
+      return [key, val]
+    }
+    return []
   }
   
-  func format(_ key: String, _ val: Bool) -> [String] {
-    return val ? [key] : []
+  func format(_ key: String, _ bool : Bool?) -> [String] {
+    if let bool = bool, bool {
+      return [key]
+    }
+    return []
   }
 }
 
 extension PackagePlugin.Path {
-  
-  func format(_ key: String, _ subPath: String) -> [String] {
-    if subPath.isEmpty {
-      return []
-    }
-    return [key, appending(subpath: subPath).string]
-  }
   
   func format(_ key: String, _ subPath: String?) -> [String] {
     if let subPath = subPath, !subPath.isEmpty {
