@@ -71,7 +71,7 @@ extension LicensePlistBuildToolPlugin: XcodeBuildToolPlugin {
 }
 
 struct Config: Codable {
-  let carfilePath: String
+  let carfilePath: String?
   let mintfilePath: String
   let podsPath: String
   let packagePath: String
@@ -146,6 +146,13 @@ extension PackagePlugin.Path {
       return []
     }
     return [key, appending(subpath: subPath).string]
+  }
+  
+  func format(_ key: String, _ subPath: String?) -> [String] {
+    if let subPath = subPath, !subPath.isEmpty {
+      return [key, appending(subpath: subPath).string]
+    }
+    return []
   }
   
 }
