@@ -21,6 +21,7 @@ extension LogLevel: EnumerableFlag {
 }
 
 // Typename used for usage in help command
+@main
 struct LicensePlist: ParsableCommand {
     static let configuration = CommandConfiguration(version: Consts.version)
 
