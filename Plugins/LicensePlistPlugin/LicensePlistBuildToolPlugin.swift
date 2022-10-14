@@ -8,10 +8,14 @@
 import Foundation
 import PackagePlugin
 
-@main
+enum Const {
+  static let doNothing = PackagePlugin.Path("/usr/bin/true")
+  static let skipFor = "Skipping LicensePlist for"
+  static let configFileName = "license-plist-config.plist"
+}
 
 // for operating on a Swift package
-struct LicensePlistBuildToolPlugin: BuildToolPlugin {
+@main struct LicensePlistBuildToolPlugin: BuildToolPlugin {
   
   // disabled as plugin intended only for Xcode projects
   func createBuildCommands(context: PluginContext, target: Target) async throws -> [Command] {
@@ -34,7 +38,7 @@ import XcodeProjectPlugin
 extension LicensePlistBuildToolPlugin: XcodeBuildToolPlugin {
   
   func createBuildCommands(context: XcodePluginContext, target: XcodeTarget) throws -> [Command] {
-    let configPath = context.xcodeProject.directory.appending(subpath: ".license-plist-config.plist")
+    let configPath = context.xcodeProject.directory.appending(subpath: Const.configFileName)
     let config = try Config.parseConfig(configPath.string)
     
     // skip if the `environmentVarDoNotExecute` exists
@@ -58,7 +62,7 @@ extension LicensePlistBuildToolPlugin: XcodeBuildToolPlugin {
   }
   
   func licenseplist(context: XcodePluginContext, target: XcodeTarget) throws -> Command {
-    let configPath = context.xcodeProject.directory.appending(subpath: ".license-plist-config.plist")
+    let configPath = context.xcodeProject.directory.appending(subpath: Const.configFileName)
     let config = try Config.parseConfig(configPath.string)
     let arguments = config.arguments(context.xcodeProject.directory)
     
@@ -73,6 +77,12 @@ extension LicensePlistBuildToolPlugin: XcodeBuildToolPlugin {
   }
   
 }
+
+/*
+The `license-plist` binary doesn't support any type of configuration file, and instead expects all values to be passed as arguments. Therefore, we'll define our own config file as a property list (to leverage the native PropertyListDecoder), and construct the sequence of arguments to the binary in code.
+
+Presumably a future version of license-plist could support a config file, and this code would go away.
+*/
 
 struct Config: Codable {
   let carfilePath: String?
@@ -94,12 +104,11 @@ struct Config: Codable {
   let supressOpeningDirectory: Bool?
   let singlePage: Bool?
   let failIfMissingLicense: Bool?
-  let environmentVarDoNotExecute: String?
   
-  // Since the license-plist binary doesn't support any type of configuration file,
-  // we'll define our own config filen and construct the sequence of arguments to the binary
-  // in code. We'll use a property list (rather than YAML) to leverage the native
-  // PropertyListDecoder to parse in the file.
+  // Some build services (like Bitrise) block the execution of plugins that make netwwork calls.
+  // This flag checks if a specific environment variable is set. If it is set, then the plugin
+  // does not execute.
+  let environmentVarDoNotExecute: String?
   
   static func parseConfig(_ path: String) throws -> Config  {
     guard let file = FileManager.default.contents(atPath: path) else {
@@ -161,8 +170,3 @@ extension PackagePlugin.Path {
 }
 
 #endif
-
-enum Const {
-  static let doNothing = PackagePlugin.Path("/usr/bin/true")
-  static let skipFor = "Skipping LicensePlist for"
-}
